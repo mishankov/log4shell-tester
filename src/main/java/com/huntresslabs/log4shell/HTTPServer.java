@@ -11,12 +11,12 @@ import io.undertow.server.handlers.accesslog.JBossLoggingAccessLogReceiver;
 
 public class HTTPServer
 {
-    public static void run(String host, int port, RedisClient redis, String ldap_url) {
+    public static void run(String host, int port, String ldap_url, String stub_uuid) {
         // Setup our routes
         HttpHandler routes = new RoutingHandler()
-            .get("/", new IndexHandler(redis, ldap_url))
-            .get("/view/{uuid}", new ViewHandler(redis, ldap_url))
-            .get("/json/{uuid}", new JsonHandler(redis))
+            .get("/", new IndexHandler(ldap_url, stub_uuid))
+            .get("/view/{uuid}", new ViewHandler(ldap_url, stub_uuid))
+//            .get("/json/{uuid}", new JsonHandler(stub_uuid))
             .setFallbackHandler(HTTPServer::notFoundHandler);
 
         HttpHandler root = new AccessLogHandler(

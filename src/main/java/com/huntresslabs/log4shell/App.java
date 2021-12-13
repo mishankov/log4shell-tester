@@ -46,8 +46,8 @@ public class App implements Callable<Integer>
     @Option(names={"--http-host"}, defaultValue="127.0.0.1", description="IP address on which to listen for HTTP connections (default: 127.0.0.1)")
     private String http_host;
 
-    @Option(names={"--redis-url"}, defaultValue="redis://localhost:6379", description="Connection string for the Redis cache server (default: redis://localhost:6379)")
-    private String redis_url;
+//    @Option(names={"--redis-url"}, defaultValue="redis://localhost:6379", description="Connection string for the Redis cache server (default: redis://localhost:6379)")
+//    private String redis_url;
 
     @Option(names={"-c", "--config"}, description="Path to YAML configuration file (overrides commandline options).")
     private File config_file;
@@ -106,12 +106,12 @@ public class App implements Callable<Integer>
             System.exit(1);
         }
 
-        try {
-            this.redis_url = (String)config.getOrDefault("redis_url", this.redis_url);
-        } catch ( ClassCastException e ) {
-            logger.error("redis_url: must be a string");
-            System.exit(1);
-        }
+//        try {
+//            this.redis_url = (String)config.getOrDefault("redis_url", this.redis_url);
+//        } catch ( ClassCastException e ) {
+//            logger.error("redis_url: must be a string");
+//            System.exit(1);
+//        }
 
         try {
             this.hostname  = (String)config.getOrDefault("hostname", this.hostname);
@@ -130,20 +130,22 @@ public class App implements Callable<Integer>
             parseConfig();
         }
 
+        String stub_uuid = "my_uuid";
+
         // Construct the LDAP url
         String ldap_url = "ldap://" + hostname + ":" + ldap_port;
 
         // Create the redis connection manager
-        logger.info("connecting to redis database");
-        RedisClient redis = RedisClient.create(redis_url);
+//        logger.info("connecting to redis database");
+//        RedisClient redis = RedisClient.create(redis_url);
 
         // Run the HTTP server
         logger.infof("starting http server listening on %s:%d", http_host, http_port);
-        HTTPServer.run(http_host, http_port, redis, ldap_url);
+        HTTPServer.run(http_host, http_port, ldap_url, stub_uuid);
 
         // Run the LDAP server
         logger.infof("starting ldap server listening on %s:%d", ldap_host, ldap_port);
-        LDAPServer.run(ldap_host, ldap_port, redis);
+        LDAPServer.run(ldap_host, ldap_port, stub_uuid);
 
         return 0;
     }

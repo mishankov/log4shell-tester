@@ -11,12 +11,12 @@ import io.undertow.util.Headers;
 
 public class IndexHandler implements HttpHandler {
 
-    private RedisClient redis;
+    private String stub_uuid;
     private String url;
     private String indexHTML;
 
-    public IndexHandler(RedisClient redis, String url) {
-        this.redis = redis;
+    public IndexHandler(String url, String stub_uuid) {
+        this.stub_uuid = stub_uuid;
         this.url = url;
         this.indexHTML = App.readResource("index.html");
     }
@@ -25,14 +25,14 @@ public class IndexHandler implements HttpHandler {
     public void handleRequest(HttpServerExchange exchange) {
 
         // Connect to redis cache
-        StatefulRedisConnection<String, String> conn = redis.connect();
-        RedisCommands<String, String> commands = conn.sync();
+//        StatefulRedisConnection<String, String> conn = redis.connect();
+//        RedisCommands<String, String> commands = conn.sync();
 
         // Generate a random UUID
-        String uuid = UUID.randomUUID().toString();
+        String uuid = this.stub_uuid;
 
         // Store the GUID
-        commands.lpush(uuid, "exists");
+//        commands.lpush(uuid, "exists");
 
         String response = indexHTML.replace("GUID", uuid);
         response = response.replace("PAYLOAD", "${jndi:"+this.url+"/"+uuid+"}");
@@ -40,6 +40,6 @@ public class IndexHandler implements HttpHandler {
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
         exchange.getResponseSender().send(response.toString());
 
-        conn.close();
+//        conn.close();
     }
 }

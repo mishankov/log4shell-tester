@@ -34,7 +34,7 @@ public class LDAPServer
         logger.infof("ldap query with %s uuid \"%s\" received from %s; dropping request.", valid ? "valid" : "invalid", uuid, address);
     }
 
-    public static void run(String host, int port, RedisClient redis) {
+    public static void run(String host, int port, String stub_uuid) {
         try {
             InMemoryDirectoryServerConfig config = new InMemoryDirectoryServerConfig(
                 "dc=example,dc=com"
@@ -53,8 +53,8 @@ public class LDAPServer
                 @Override
                 public void processSearchResult ( InMemoryInterceptedSearchResult result ) {
                     String key = result.getRequest().getBaseDN();
-                    StatefulRedisConnection<String, String> connection = redis.connect();
-                    RedisCommands<String, String> commands = connection.sync();
+//                    StatefulRedisConnection<String, String> connection = redis.connect();
+//                    RedisCommands<String, String> commands = connection.sync();
                     LDAPListenerClientConnection conn;
 
                     // Send an error response regardless
@@ -67,7 +67,7 @@ public class LDAPServer
 
                         conn = (LDAPListenerClientConnection)field.get(result);
                     } catch ( Exception e2 ) {
-                        connection.close();
+//                        connection.close();
                         e2.printStackTrace();
                         return;
                     }
@@ -76,22 +76,22 @@ public class LDAPServer
                     String when = Instant.now().toString();
                     String addr = conn.getSocket().getInetAddress().toString().replaceAll("^/", "");
                     String value = addr + "/" + when;
-                    Boolean valid = (commands.exists(key) != 0);
+//                    Boolean valid = (commands.exists(key) != 0);
 
                     // Log any requests
-                    log_attempt(addr, key, valid);
+                    log_attempt(addr, key, true);
 
                     // Ignore requests with invalid UUIDs
-                    if ( ! valid ) {
-                        return;
-                    }
+//                    if ( ! valid ) {
+//                        return;
+//                    }
 
                     // Store this result
-                    commands.lpush(key, value);
-                    commands.expire(key, 1800);
-
-                    // Close the connection
-                    connection.close();
+//                    commands.lpush(key, value);
+//                    commands.expire(key, 1800);
+//
+//                    // Close the connection
+//                    connection.close();
                 }
             });
             InMemoryDirectoryServer ds = new InMemoryDirectoryServer(config);

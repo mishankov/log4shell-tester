@@ -1,5 +1,6 @@
 package com.huntresslabs.log4shell;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,36 +13,38 @@ import io.undertow.util.Headers;
 
 public class ViewHandler implements HttpHandler {
 
-    private RedisClient redis;
+    private String stub_uuid;
     private String url;
     private String viewHTML;
 
-    public ViewHandler(RedisClient redis, String url) {
-        this.redis = redis;
+    public ViewHandler(String url, String stub_uuid) {
+        this.stub_uuid = stub_uuid;
         this.url = url;
         this.viewHTML = App.readResource("view.html");
     }
 
     @Override
     public void handleRequest(HttpServerExchange exchange) {
-        StatefulRedisConnection<String, String> connection = redis.connect();
-        RedisCommands<String, String> commands = connection.sync();
+//        StatefulRedisConnection<String, String> connection = redis.connect();
+//        RedisCommands<String, String> commands = connection.sync();
 
         // Grab the UUID
-        String uuid = Optional.ofNullable(exchange.getQueryParameters().get("uuid").getFirst()).orElse("");
+        String uuid = this.stub_uuid;
 
         // Make sure this UUID is real
-        if( commands.exists(uuid) == 0 ) {
-            connection.close();
-            HTTPServer.notFoundHandler(exchange);
-            return;
-        }
+//        if( commands.exists(uuid) == 0 ) {
+//            connection.close();
+//            HTTPServer.notFoundHandler(exchange);
+//            return;
+//        }
 
         // Build the page :sob:
         StringBuilder body = new StringBuilder();
 
         // Iterate over all hits
-        List<String> hits = commands.lrange(uuid, 0, commands.llen(uuid));
+        List<String> hits = new ArrayList<>();
+        hits.add("hits in logs");
+
         for(String hit : hits) {
             if( hit == "exists" ) continue;
 
@@ -61,6 +64,6 @@ public class ViewHandler implements HttpHandler {
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
         exchange.getResponseSender().send(response);
 
-        connection.close();
+//        connection.close();
     }
 }
